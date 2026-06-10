@@ -1,0 +1,191 @@
+[
+  {
+    "id": "13099d21-751d-441a-9cf3-6e84ce2bc46b",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812033993-5ms66ht4.png",
+    "color": "#16A34A",
+    "name": "Sức khỏe",
+    "backgroundColor": "#DCFCE7",
+    "descriptionEn": "Today I took more time to take care of myself.",
+    "descriptionVi": "Hôm nay mình dành thời gian chăm sóc bản thân nhiều hơn."
+  },
+  {
+    "id": "13eb8362-0e26-45c4-9a26-3da1465e70f7",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812037573-ks3j515d.png",
+    "color": "#CA8A04",
+    "name": "Em bé",
+    "backgroundColor": "#FEF9C3",
+    "descriptionEn": "A small moment filled with love and tenderness.",
+    "descriptionVi": "Một khoảnh khắc nhỏ nhưng đầy yêu thương và dịu dàng."
+  },
+  {
+    "id": "25f15f64-f4e1-4a09-b5b3-54b7e58f788b",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812033052-6402s2ed.png",
+    "color": "#6366F1",
+    "name": "Kì thi",
+    "backgroundColor": "#EDE9FE",
+    "descriptionEn": "A stressful day, but also one full of effort.",
+    "descriptionVi": "Một ngày nhiều áp lực nhưng cũng đầy cố gắng."
+  },
+  {
+    "id": "2dc4f924-0114-4093-af82-4162cb1eedc1",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777815520434-o0qb8hhm.png",
+    "color": "#0891B2",
+    "name": "Đầu tư",
+    "backgroundColor": "#CFFAFE",
+    "descriptionEn": "A small decision for the long future ahead.",
+    "descriptionVi": "Một quyết định nhỏ cho tương lai dài phía trước."
+  },
+  {
+    "id": "53b8d29b-8cad-48fa-857e-08a2041a2f07",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812040460-f7xf4898.png",
+    "color": "#059669",
+    "name": "Nhận lương",
+    "backgroundColor": "#D1FAE5",
+    "descriptionEn": "A well-earned reward after days of hard work.",
+    "descriptionVi": "Thành quả xứng đáng sau những ngày làm việc chăm chỉ."
+  },
+  {
+    "id": "5a902d70-c195-4200-80a3-8c4e922b151c",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812163998-d4a349i4.png",
+    "color": "#F97316",
+    "name": "Khởi nghiệp",
+    "backgroundColor": null,
+    "descriptionEn": "Starting a new journey with many hopes.",
+    "descriptionVi": "Bắt đầu một hành trình mới với nhiều hy vọng."
+  },
+  {
+    "id": "5e6b7e53-3c3a-4c04-8d54-1d921532795f",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812044960-8s6lumts.png",
+    "color": "#7C3AED",
+    "name": "Concert",
+    "backgroundColor": "#EDE9FE",
+    "descriptionEn": "A music night full of energy and emotion.",
+    "descriptionVi": "Một đêm âm nhạc tràn đầy năng lượng và cảm xúc."
+  },
+  {
+    "id": "67e4e5a5-062b-4dd3-8d5e-1631bbfe5f0b",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812031216-tzizd93j.png",
+    "color": "#6366F1",
+    "name": "Tốt nghiệp",
+    "backgroundColor": "#EDE9FE",
+    "descriptionEn": "A memorable milestone after a long journey of effort.",
+    "descriptionVi": "Một cột mốc đáng nhớ sau chặng đường dài nỗ lực."
+  },
+  {
+    "id": "82351158-cee8-43bf-ac9e-9a68d0407d65",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812042287-z7e6hj81.png",
+    "color": "#DB2777",
+    "name": "Kỷ niệm yêu nhau",
+    "backgroundColor": "#FFE4E6",
+    "descriptionEn": "A day to remember the sweet moments together.",
+    "descriptionVi": "Một ngày để nhớ lại những điều ngọt ngào."
+  },
+  {
+    "id": "83087332-bf8d-4bee-90ce-7665f18e0da8",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812045960-of8fl6fn.png",
+    "color": "#CA8A04",
+    "name": "Thành tựu",
+    "backgroundColor": "#FEF3C7",
+    "descriptionEn": "A small thing that made me feel proud.",
+    "descriptionVi": "Một điều nhỏ nhưng khiến mình cảm thấy tự hào."
+  },
+  {
+    "id": "83c54ba2-ccab-474f-a946-3940ffb1cf52",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812046792-omzgku3k.png",
+    "color": "#BE185D",
+    "name": "Chia tay",
+    "backgroundColor": "#FBCFE8",
+    "descriptionEn": "A sad but necessary moment to move forward.",
+    "descriptionVi": "Một khoảnh khắc buồn nhưng cần thiết để bước tiếp."
+  },
+  {
+    "id": "8f23a7b3-987a-4843-ba90-3b3acd9ee0a9",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812036631-evxhwx3y.png",
+    "color": "#0284C7",
+    "name": "Du lịch",
+    "backgroundColor": "#E0F2FE",
+    "descriptionEn": "A trip that helped me relax and discover new things.",
+    "descriptionVi": "Một chuyến đi giúp mình thư giãn và khám phá nhiều điều mới."
+  },
+  {
+    "id": "a9a8e74c-6cbc-461c-ac87-ae11336df4b9",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812041450-3bujo54e.png",
+    "color": "#DC2626",
+    "name": "Kết hôn",
+    "backgroundColor": "#FDE2E2",
+    "descriptionEn": "A special day marking a lasting bond.",
+    "descriptionVi": "Một ngày đặc biệt đánh dấu sự gắn kết lâu dài."
+  },
+  {
+    "id": "ab3b5b39-57c3-4a53-9b96-e9c689993278",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812038505-ibeukqgc.png",
+    "color": "#16A34A",
+    "name": "Mua nhà",
+    "backgroundColor": "#DCFCE7",
+    "descriptionEn": "A big step toward a more stable life.",
+    "descriptionVi": "Một bước tiến lớn cho cuộc sống ổn định hơn."
+  },
+  {
+    "id": "ae88aee8-aae7-46c1-9292-028f2eae36fb",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812039491-3cj36qul.png",
+    "color": "#2563EB",
+    "name": "Mua xe",
+    "backgroundColor": "#DBEAFE",
+    "descriptionEn": "A new joy for the journeys ahead.",
+    "descriptionVi": "Một niềm vui mới cho những hành trình phía trước."
+  },
+  {
+    "id": "d3554025-fdd9-45fd-a5f7-9d4a0d8c342c",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812044011-hlza1aol.png",
+    "color": "#2563EB",
+    "name": "Thể thao",
+    "backgroundColor": "#DBEAFE",
+    "descriptionEn": "A day of movement that made my body and mind feel better.",
+    "descriptionVi": "Một ngày vận động giúp cơ thể và tinh thần tốt hơn."
+  },
+  {
+    "id": "d90000d7-6e71-4e89-a8f9-d3f2fc5c41d3",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777815456312-om0oaif3.png",
+    "color": "#DC2626",
+    "name": "Từ thiện",
+    "backgroundColor": "#FEE2E2",
+    "descriptionEn": "A small act to spread kindness and help others.",
+    "descriptionVi": "Một hành động nhỏ để lan tỏa sự giúp đỡ đến người khác."
+  },
+  {
+    "id": "dde59ae6-622a-42b3-8f81-827f284e8281",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812029390-0rqaeyjn.png",
+    "color": "#D97706",
+    "name": "Phá sản",
+    "backgroundColor": "#FFEDD5",
+    "descriptionEn": "A difficult period, but also a chance to start again.",
+    "descriptionVi": "Một giai đoạn khó khăn nhưng cũng là cơ hội để bắt đầu lại."
+  },
+  {
+    "id": "e9aed4f0-97ca-4b40-81f3-12017059d698",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777815479861-6i5n1msz.png",
+    "color": "#0284C7",
+    "name": "Chuyển việc",
+    "backgroundColor": "#E0F2FE",
+    "descriptionEn": "A change to find a more suitable path.",
+    "descriptionVi": "Một sự thay đổi để tìm hướng đi phù hợp hơn."
+  },
+  {
+    "id": "ec29256e-54d4-4ffa-a47a-158cb760017e",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812043154-4vbj8doi.png",
+    "color": "#D97706",
+    "name": "Khai trương",
+    "backgroundColor": "#FFEDD5",
+    "descriptionEn": "A new beginning with many hopes ahead.",
+    "descriptionVi": "Một khởi đầu mới với nhiều kỳ vọng phía trước."
+  },
+  {
+    "id": "ee4c4180-6688-4c39-baa3-1a788fbce96b",
+    "image": "https://pub-cfb902c8ae1f44c2ab9a678c09a33a8c.r2.dev/events/1777812035707-w3d67mis.png",
+    "color": "#DB2777",
+    "name": "Sinh nhật",
+    "backgroundColor": "#FCE7F3",
+    "descriptionEn": "A special day to reflect and appreciate myself.",
+    "descriptionVi": "Một ngày đặc biệt để nhìn lại và trân trọng bản thân."
+  }
+]

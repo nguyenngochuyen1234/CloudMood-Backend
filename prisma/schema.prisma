@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String
+  name         String?
+  role         String      @default("USER")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  moodEntries  MoodEntry[]
+}
+
+model MoodEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moodScore Int      // 1 to 5 scale
+  note      String?
+  tags      String[] // PostgreSQL supports string arrays natively
+  entryDate DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([entryDate])
+}
+
+model Emotion {
+  id            BigInt      @id
+  nameEn        String      @map("name_en") @db.VarChar(100)
+  nameVi        String      @map("name_vi") @db.VarChar(100)
+  descriptionEn String?     @map("description_en") @db.Text
+  descriptionVi String?     @map("description_vi") @db.Text
+  color         String?     @db.VarChar(20)
+  score         Int         @default(0)
+  isPro         Boolean     @default(false) @map("is_pro")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamp
+
+  emojis        Emoji[]
+
+  @@map("emotions")
+}
+
+model EmojiType {
+  id            BigInt      @id
+  nameEn        String      @map("name_en") @db.VarChar(255)
+  nameVi        String      @map("name_vi") @db.VarChar(255)
+  descriptionEn String?     @map("description_en") @db.Text
+  descriptionVi String?     @map("description_vi") @db.Text
+  isActive      Boolean     @default(true) @map("is_active")
+  isPro         Boolean     @default(false) @map("is_pro")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamp
+
+  emojis        Emoji[]
+
+  @@map("emoji_types")
+}
+
+model Emoji {
+  id        BigInt    @id
+  imageUrl  String    @map("image_url") @db.Text
+  typeId    BigInt    @map("type_id")
+  emotionId BigInt    @map("emotion_id")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp
+
+  type      EmojiType @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  emotion   Emotion   @relation(fields: [emotionId], references: [id], onDelete: Cascade)
+
+  @@map("emojis")
+}
+
+model Theme {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @db.VarChar(255)
+  mode        String?      @db.VarChar(50)
+  isActive    Boolean      @default(true) @map("is_active")
+  isPro       Boolean      @default(false) @map("is_pro")
+  colorsJson  Json         @map("colors_json") @db.JsonB
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamp
+  themeImages ThemeImage[]
+
+  @@map("themes")
+}
+
+model ThemeImage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  themeId   String   @map("theme_id") @db.Uuid
+  type      String   @db.VarChar(50)
+  imageUrl  String   @map("image_url") @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp
+  theme     Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@map("theme_images")
+}
+
+model Event {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(255)
+  imageUrl        String?  @map("image_url") @db.Text
+  color           String?  @db.VarChar(20)
+  backgroundColor String?  @map("background_color") @db.VarChar(20)
+  descriptionEn   String?  @map("description_en") @db.Text
+  descriptionVi   String?  @map("description_vi") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp
+
+  @@map("events")
+}
