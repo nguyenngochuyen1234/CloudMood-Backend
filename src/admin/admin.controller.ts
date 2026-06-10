@@ -22,7 +22,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminRoleGuard } from './admin-role.guard';
 
 @Controller('admin')
-@UseGuards(JwtAuthGuard)
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
@@ -42,7 +41,7 @@ export class AdminController {
   }
 
   @Patch('users/:id/role')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   updateUserRole(@Param('id') id: string, @Body('role') role: string) {
     return this.adminService.updateUserRole(id, role);
   }
@@ -54,19 +53,19 @@ export class AdminController {
   }
 
   @Post('emotions')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   createEmotion(@Body() body: any) {
     return this.adminService.createEmotion({ ...body, id: BigInt(body.id) });
   }
 
   @Patch('emotions/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   updateEmotion(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.adminService.updateEmotion(BigInt(id), body);
   }
 
   @Delete('emotions/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteEmotion(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteEmotion(BigInt(id));
   }
@@ -78,26 +77,26 @@ export class AdminController {
   }
 
   @Post('emoji-types')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   createEmojiType(@Body() body: any) {
     return this.adminService.createEmojiType({ ...body, id: BigInt(body.id) });
   }
 
   @Patch('emoji-types/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   updateEmojiType(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.adminService.updateEmojiType(BigInt(id), body);
   }
 
   @Delete('emoji-types/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteEmojiType(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteEmojiType(BigInt(id));
   }
 
   // ==================== UPLOAD ====================
   @Post('upload')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   @UseInterceptors(FileInterceptor('file', {
     storage: memoryStorage(),
     fileFilter: (req, file, cb) => {
@@ -124,13 +123,13 @@ export class AdminController {
   }
 
   @Post('emojis/bulk')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   bulkCreateEmojis(@Body() body: { emojis: any[] }) {
     return this.adminService.bulkCreateEmojis(body.emojis);
   }
 
   @Post('emojis')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   createEmoji(@Body() body: any) {
     return this.adminService.createEmoji({
       ...body,
@@ -141,7 +140,7 @@ export class AdminController {
   }
 
   @Patch('emojis/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   updateEmoji(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
     const data: any = { ...body };
     if (body.typeId) data.typeId = BigInt(body.typeId);
@@ -150,7 +149,7 @@ export class AdminController {
   }
 
   @Delete('emojis/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteEmoji(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteEmoji(BigInt(id));
   }
@@ -162,32 +161,32 @@ export class AdminController {
   }
 
   @Post('themes')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   createTheme(@Body() body: any) {
     return this.adminService.createTheme(body);
   }
 
   @Patch('themes/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   updateTheme(@Param('id') id: string, @Body() body: any) {
     return this.adminService.updateTheme(id, body);
   }
 
   @Delete('themes/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteTheme(@Param('id') id: string) {
     return this.adminService.deleteTheme(id);
   }
 
   // ==================== THEME IMAGES ====================
   @Post('theme-images')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   createThemeImage(@Body() body: { themeId: string; type: string; imageUrl: string }) {
     return this.adminService.createThemeImage(body);
   }
 
   @Delete('theme-images/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteThemeImage(@Param('id') id: string) {
     return this.adminService.deleteThemeImage(id);
   }
@@ -199,19 +198,19 @@ export class AdminController {
   }
 
   @Post('events')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   createEvent(@Body() body: any) {
     return this.adminService.createEvent(body);
   }
 
   @Patch('events/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   updateEvent(@Param('id') id: string, @Body() body: any) {
     return this.adminService.updateEvent(id, body);
   }
 
   @Delete('events/:id')
-  @UseGuards(AdminRoleGuard)
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteEvent(@Param('id') id: string) {
     return this.adminService.deleteEvent(id);
   }

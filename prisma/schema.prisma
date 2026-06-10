@@ -17,22 +17,6 @@ model User {
   role         String      @default("USER")
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  moodEntries  MoodEntry[]
-}
-
-model MoodEntry {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  moodScore Int      // 1 to 5 scale
-  note      String?
-  tags      String[] // PostgreSQL supports string arrays natively
-  entryDate DateTime @default(now())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([entryDate])
 }
 
 model Emotion {

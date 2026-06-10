@@ -1,7 +1,17 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpCode,
+  HttpStatus,
+  ForbiddenException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { GetUser } from './get-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -13,7 +23,15 @@ export class AuthController {
   }
 
   @Post('register-admin')
-  registerAdmin(@Body() registerDto: RegisterDto) {
+  @UseGuards(JwtAuthGuard)
+  registerAdmin(
+    @GetUser('role') role: string,
+    @Body() registerDto: RegisterDto,
+  ) {
+    if (role !== 'ADMIN') {
+      throw new ForbiddenException('Admin access only');
+    }
+
     return this.authService.registerAdmin(registerDto);
   }
 

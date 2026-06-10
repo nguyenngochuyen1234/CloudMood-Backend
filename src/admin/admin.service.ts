@@ -14,7 +14,6 @@ export class AdminService {
         name: true,
         role: true,
         createdAt: true,
-        _count: { select: { moodEntries: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -208,14 +207,13 @@ export class AdminService {
 
   // ==================== DASHBOARD ====================
   async getDashboardStats() {
-    const [totalUsers, totalMoodEntries, totalEmotions, totalThemes, totalEvents] =
+    const [totalUsers, totalEmotions, totalThemes, totalEvents] =
       await Promise.all([
         this.prisma.user.count(),
-        this.prisma.moodEntry.count(),
         this.prisma.emotion.count(),
         this.prisma.theme.count(),
         this.prisma.event.count(),
       ]);
-    return { totalUsers, totalMoodEntries, totalEmotions, totalThemes, totalEvents };
+    return { totalUsers, totalEmotions, totalThemes, totalEvents };
   }
 }
