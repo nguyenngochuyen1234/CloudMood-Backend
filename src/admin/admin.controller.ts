@@ -165,8 +165,19 @@ export class AdminController {
 
   // ==================== THEMES ====================
   @Get('themes')
-  getThemes() {
-    return this.adminService.getThemes();
+  getThemes(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('mode') mode?: string,
+  ) {
+    const parsedPage = this.parsePositiveIntegerQuery(page, 'page');
+    const parsedLimit = this.parsePositiveIntegerQuery(limit, 'limit');
+
+    return this.adminService.getThemes({
+      page: parsedPage,
+      limit: parsedLimit,
+      mode,
+    });
   }
 
   @Get('themes/home')
@@ -232,5 +243,18 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteEvent(@Param('id') id: string) {
     return this.adminService.deleteEvent(id);
+  }
+
+  private parsePositiveIntegerQuery(value: string | undefined, fieldName: string) {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    const parsedValue = Number(value);
+    if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+      throw new BadRequestException(`${fieldName} must be a positive integer`);
+    }
+
+    return parsedValue;
   }
 }

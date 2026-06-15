@@ -202,13 +202,21 @@ Response item:
 
 `GET /admin/themes`
 
+Query params:
+
+- `mode` optional, filter theo `Theme.mode`, vi du `lightMode` hoac `darkMode`
+- `page` optional, bat dau tu `1`
+- `limit` optional, so item moi trang, bat buoc la so nguyen duong neu co truyen
+
+Neu khong truyen `page` va `limit`, API se giu nguyen contract cu va tra ve mot mang theme.
+
 Response item:
 
 ```json
 {
   "id": "uuid",
   "name": "Sunrise",
-  "mode": "light",
+  "mode": "lightMode",
   "isActive": true,
   "isPro": false,
   "colorsJson": {
@@ -225,6 +233,36 @@ Response item:
       "createdAt": "2026-06-10T15:00:00.000Z"
     }
   ]
+}
+```
+
+Neu co truyen `page` hoac `limit`, response se co dang:
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "name": "Sunrise",
+      "mode": "lightMode",
+      "isActive": true,
+      "isPro": false,
+      "colorsJson": {
+        "primary": "#FF8A65",
+        "background": "#FFF3E0"
+      },
+      "createdAt": "2026-06-10T15:00:00.000Z",
+      "themeImages": []
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalItems": 24,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
 }
 ```
 

@@ -251,11 +251,58 @@ export class AdminService {
   }
 
   // ==================== THEMES ====================
-  async getThemes() {
-    return this.prisma.theme.findMany({
-      include: { themeImages: true },
-      orderBy: { createdAt: 'desc' },
-    });
+  async getThemes(params?: {
+    page?: number;
+    limit?: number;
+    mode?: string;
+  }) {
+    const trimmedMode = params?.mode?.trim();
+    const where = trimmedMode
+      ? {
+          mode: {
+            equals: trimmedMode,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        }
+      : undefined;
+
+    const shouldPaginate =
+      params?.page !== undefined || params?.limit !== undefined;
+
+    if (!shouldPaginate) {
+      return this.prisma.theme.findMany({
+        where,
+        include: { themeImages: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const [items, totalItems] = await this.prisma.$transaction([
+      this.prisma.theme.findMany({
+        where,
+        include: { themeImages: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.theme.count({ where }),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+        hasNextPage: skip + items.length < totalItems,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   async getThemesForHome() {
