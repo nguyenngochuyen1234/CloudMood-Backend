@@ -112,8 +112,7 @@ export class AdminController {
     @Query('folder') folder: string,
   ) {
     const safeFolder = /^[a-z0-9_-]+$/i.test(folder) ? folder : 'emojis';
-    const url = await this.r2.upload(file.buffer, file.originalname, file.mimetype, safeFolder);
-    return { url };
+    return this.r2.upload(file.buffer, file.originalname, safeFolder);
   }
 
   // ==================== EMOJIS ====================

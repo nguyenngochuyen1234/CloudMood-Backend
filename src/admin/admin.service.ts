@@ -2,6 +2,15 @@ import { ConflictException, Injectable, Logger, NotFoundException } from '@nestj
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { R2Service } from '../upload/r2.service';
+import { ImageVariantUrls } from '../upload/image-asset.types';
+
+type ImageRecord = {
+  imageUrl: string | null;
+};
+
+type ThemeWithImageRecords = {
+  themeImages: ImageRecord[];
+};
 
 @Injectable()
 export class AdminService {
@@ -64,6 +73,41 @@ export class AdminService {
     } catch (error) {
       this.logger.error(
         `Failed to delete replaced emoji image from R2: ${imageUrl}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
+  }
+
+  private attachImageVariants<T extends ImageRecord>(
+    item: T,
+  ): T & { imageVariants: ImageVariantUrls | null } {
+    return {
+      ...item,
+      imageVariants: this.r2.resolveVariants(item.imageUrl),
+    };
+  }
+
+  private attachImageVariantsToCollection<T extends ImageRecord>(items: T[]) {
+    return items.map(item => this.attachImageVariants(item));
+  }
+
+  private attachThemeImageVariants<T extends ThemeWithImageRecords>(theme: T) {
+    return {
+      ...theme,
+      themeImages: this.attachImageVariantsToCollection(theme.themeImages),
+    };
+  }
+
+  private async deleteImageIfPresent(imageUrl: string | null | undefined) {
+    if (!imageUrl) {
+      return;
+    }
+
+    try {
+      await this.r2.deleteByUrl(imageUrl);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete image from R2: ${imageUrl}`,
         error instanceof Error ? error.stack : undefined,
       );
     }
@@ -163,11 +207,12 @@ export class AdminService {
 
   // ==================== EMOJIS ====================
   async getEmojis(typeId?: bigint) {
-    return this.prisma.emoji.findMany({
+    const emojis = await this.prisma.emoji.findMany({
       where: typeId ? { typeId } : undefined,
       include: { type: true, emotion: true },
       orderBy: { id: 'asc' },
     });
+    return this.attachImageVariantsToCollection(emojis);
   }
 
   async createEmoji(data: { id: bigint; imageUrl: string; typeId: bigint; emotionId: bigint }) {
@@ -189,7 +234,7 @@ export class AdminService {
         data.imageUrl,
       );
 
-      return createdEmoji;
+      return this.attachImageVariants(createdEmoji);
     } catch (error) {
       this.mapEmojiPairConflict(error);
     }
@@ -218,8 +263,11 @@ export class AdminService {
       });
 
       await this.deleteEmojiImageIfNeeded(replacedEmojiImageUrl, finalImageUrl);
+      if (data.imageUrl && data.imageUrl !== existing.imageUrl) {
+        await this.deleteImageIfPresent(existing.imageUrl);
+      }
 
-      return updatedEmoji;
+      return this.attachImageVariants(updatedEmoji);
     } catch (error) {
       this.mapEmojiPairConflict(error);
     }
@@ -228,12 +276,14 @@ export class AdminService {
   async deleteEmoji(id: bigint) {
     const existing = await this.prisma.emoji.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Emoji not found');
-    return this.prisma.emoji.delete({ where: { id } });
+    const deletedEmoji = await this.prisma.emoji.delete({ where: { id } });
+    await this.deleteImageIfPresent(existing.imageUrl);
+    return this.attachImageVariants(deletedEmoji);
   }
 
   async bulkCreateEmojis(emojis: Array<{ id: number; imageUrl: string; typeId: number; emotionId: number }>) {
     try {
-      return await this.prisma.$transaction(
+      const createdEmojis = await this.prisma.$transaction(
         emojis.map(item =>
           this.prisma.emoji.create({
             data: {
@@ -245,6 +295,7 @@ export class AdminService {
           }),
         ),
       );
+      return this.attachImageVariantsToCollection(createdEmojis);
     } catch (error) {
       this.mapEmojiPairConflict(error);
     }
@@ -270,11 +321,12 @@ export class AdminService {
       params?.page !== undefined || params?.limit !== undefined;
 
     if (!shouldPaginate) {
-      return this.prisma.theme.findMany({
+      const themes = await this.prisma.theme.findMany({
         where,
         include: { themeImages: true },
         orderBy: { createdAt: 'desc' },
       });
+      return themes.map(theme => this.attachThemeImageVariants(theme));
     }
 
     const page = params?.page ?? 1;
@@ -293,7 +345,7 @@ export class AdminService {
     ]);
 
     return {
-      items,
+      items: items.map(item => this.attachThemeImageVariants(item)),
       pagination: {
         page,
         limit,
@@ -306,7 +358,7 @@ export class AdminService {
   }
 
   async getThemesForHome() {
-    return this.prisma.theme.findMany({
+    const themes = await this.prisma.theme.findMany({
       select: {
         id: true,
         name: true,
@@ -323,6 +375,7 @@ export class AdminService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return themes.map(theme => this.attachThemeImageVariants(theme));
   }
 
   async getThemeById(id: string) {
@@ -335,7 +388,7 @@ export class AdminService {
       throw new NotFoundException('Theme not found');
     }
 
-    return theme;
+    return this.attachThemeImageVariants(theme);
   }
 
   async createTheme(data: {
@@ -355,14 +408,25 @@ export class AdminService {
   }
 
   async deleteTheme(id: string) {
-    const existing = await this.prisma.theme.findUnique({ where: { id } });
+    const existing = await this.prisma.theme.findUnique({
+      where: { id },
+      include: { themeImages: true },
+    });
     if (!existing) throw new NotFoundException('Theme not found');
-    return this.prisma.theme.delete({ where: { id } });
+    const deletedTheme = await this.prisma.theme.delete({
+      where: { id },
+      include: { themeImages: true },
+    });
+    await Promise.all(
+      existing.themeImages.map(image => this.deleteImageIfPresent(image.imageUrl)),
+    );
+    return this.attachThemeImageVariants(deletedTheme);
   }
 
   // ==================== EVENTS ====================
   async getEvents() {
-    return this.prisma.event.findMany({ orderBy: { createdAt: 'desc' } });
+    const events = await this.prisma.event.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.attachImageVariantsToCollection(events);
   }
 
   async createEvent(data: {
@@ -373,30 +437,40 @@ export class AdminService {
     descriptionEn?: string;
     descriptionVi?: string;
   }) {
-    return this.prisma.event.create({ data });
+    const createdEvent = await this.prisma.event.create({ data });
+    return this.attachImageVariants(createdEvent);
   }
 
   async updateEvent(id: string, data: Partial<{ name: string; imageUrl: string; color: string; backgroundColor: string; descriptionEn: string; descriptionVi: string }>) {
     const existing = await this.prisma.event.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Event not found');
-    return this.prisma.event.update({ where: { id }, data });
+    const updatedEvent = await this.prisma.event.update({ where: { id }, data });
+    if (data.imageUrl && data.imageUrl !== existing.imageUrl) {
+      await this.deleteImageIfPresent(existing.imageUrl);
+    }
+    return this.attachImageVariants(updatedEvent);
   }
 
   async deleteEvent(id: string) {
     const existing = await this.prisma.event.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Event not found');
-    return this.prisma.event.delete({ where: { id } });
+    const deletedEvent = await this.prisma.event.delete({ where: { id } });
+    await this.deleteImageIfPresent(existing.imageUrl);
+    return this.attachImageVariants(deletedEvent);
   }
 
   // ==================== THEME IMAGES ====================
   async createThemeImage(data: { themeId: string; type: string; imageUrl: string }) {
-    return this.prisma.themeImage.create({ data });
+    const createdThemeImage = await this.prisma.themeImage.create({ data });
+    return this.attachImageVariants(createdThemeImage);
   }
 
   async deleteThemeImage(id: string) {
     const existing = await this.prisma.themeImage.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('ThemeImage not found');
-    return this.prisma.themeImage.delete({ where: { id } });
+    const deletedThemeImage = await this.prisma.themeImage.delete({ where: { id } });
+    await this.deleteImageIfPresent(existing.imageUrl);
+    return this.attachImageVariants(deletedThemeImage);
   }
 
   // ==================== DASHBOARD ====================

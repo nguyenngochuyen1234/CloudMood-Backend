@@ -1,86 +1,58 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { DeleteObjectCommand, S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { extname } from 'path';
+import { S3Client } from '@aws-sdk/client-s3';
+import { ImageAssetManager } from './image-asset-manager';
+import { ImageVariantUrls, UploadedImageAsset } from './image-asset.types';
 
 @Injectable()
 export class R2Service {
-  private client: S3Client;
-  private bucket: string;
-  private publicUrl: string;
+  private readonly manager: ImageAssetManager;
 
   constructor() {
     const accountId = process.env.R2_ACCOUNT_ID;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-    this.bucket = process.env.R2_BUCKET_NAME ?? '';
-    this.publicUrl = (process.env.R2_PUBLIC_URL ?? '').replace(/\/$/, '');
+    const bucket = process.env.R2_BUCKET_NAME ?? '';
+    const publicUrl = (process.env.R2_PUBLIC_URL ?? '').replace(/\/$/, '');
 
-    if (!accountId || !accessKeyId || !secretAccessKey || !this.bucket || !this.publicUrl) {
-      throw new InternalServerErrorException('R2 chưa được cấu hình đầy đủ (kiểm tra biến môi trường R2_*)');
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicUrl) {
+      throw new InternalServerErrorException(
+        'R2 is not fully configured. Please verify R2_* environment variables.',
+      );
     }
 
-    this.client = new S3Client({
+    const client = new S3Client({
       region: 'auto',
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: { accessKeyId, secretAccessKey },
+    });
+
+    this.manager = new ImageAssetManager(client, {
+      bucket,
+      publicUrl,
     });
   }
 
   async upload(
     buffer: Buffer,
     originalName: string,
-    mimeType: string,
     folder = 'emojis',
-  ): Promise<string> {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const key = `${folder}/${unique}${extname(originalName)}`;
-
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: mimeType,
-      }),
-    );
-
-    return `${this.publicUrl}/${key}`;
+  ): Promise<UploadedImageAsset> {
+    return this.manager.uploadImage(buffer, originalName, folder);
   }
 
   async deleteByUrl(url: string): Promise<boolean> {
-    const key = this.extractKeyFromUrl(url);
-    if (!key) {
-      return false;
-    }
-
-    await this.client.send(
-      new DeleteObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      }),
-    );
-
-    return true;
+    return this.manager.deleteManagedAssetByUrl(url);
   }
 
-  private extractKeyFromUrl(url: string): string | null {
-    try {
-      const publicUrl = new URL(this.publicUrl);
-      const targetUrl = new URL(url);
+  resolveVariants(imageUrl: string | null | undefined): ImageVariantUrls | null {
+    return this.manager.resolveVariants(imageUrl);
+  }
 
-      if (publicUrl.origin !== targetUrl.origin) {
-        return null;
-      }
+  shouldMigrateUrl(url: string | null | undefined) {
+    return this.manager.shouldMigrateUrl(url);
+  }
 
-      const basePath = publicUrl.pathname.replace(/\/$/, '');
-      if (basePath && !targetUrl.pathname.startsWith(`${basePath}/`)) {
-        return null;
-      }
-
-      const relativePath = targetUrl.pathname.slice(basePath.length).replace(/^\/+/, '');
-      return relativePath || null;
-    } catch {
-      return null;
-    }
+  async migrateRemoteImage(remoteUrl: string, folder: string) {
+    return this.manager.migrateRemoteImage(remoteUrl, folder);
   }
 }
