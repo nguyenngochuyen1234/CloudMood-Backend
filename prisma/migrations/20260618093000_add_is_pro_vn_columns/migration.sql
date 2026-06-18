@@ -1,0 +1,8 @@
+ALTER TABLE "emotions"
+ADD COLUMN "is_pro_vn" BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE "emoji_types"
+ADD COLUMN "is_pro_vn" BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE "themes"
+ADD COLUMN "is_pro_vn" BOOLEAN NOT NULL DEFAULT false;

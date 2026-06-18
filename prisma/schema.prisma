@@ -28,6 +28,7 @@ model Emotion {
   color         String?     @db.VarChar(20)
   score         Int         @default(0)
   isPro         Boolean     @default(false) @map("is_pro")
+  isProVN       Boolean     @default(false) @map("is_pro_vn")
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamp
 
   emojis        Emoji[]
@@ -43,6 +44,7 @@ model EmojiType {
   descriptionVi String?     @map("description_vi") @db.Text
   isActive      Boolean     @default(true) @map("is_active")
   isPro         Boolean     @default(false) @map("is_pro")
+  isProVN       Boolean     @default(false) @map("is_pro_vn")
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamp
 
   emojis        Emoji[]
@@ -70,6 +72,7 @@ model Theme {
   mode        String?      @db.VarChar(50)
   isActive    Boolean      @default(true) @map("is_active")
   isPro       Boolean      @default(false) @map("is_pro")
+  isProVN     Boolean      @default(false) @map("is_pro_vn")
   colorsJson  Json         @map("colors_json") @db.JsonB
   createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamp
   themeImages ThemeImage[]
