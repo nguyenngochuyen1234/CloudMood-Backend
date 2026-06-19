@@ -2,7 +2,10 @@ import { ConflictException, Injectable, Logger, NotFoundException } from '@nestj
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { R2Service } from '../upload/r2.service';
-import { ImageVariantUrls } from '../upload/image-asset.types';
+import {
+  ImageVariantName,
+  ImageVariantUrls,
+} from '../upload/image-asset.types';
 
 type ImageRecord = {
   imageUrl: string | null;
@@ -80,10 +83,17 @@ export class AdminService {
 
   private attachImageVariants<T extends ImageRecord>(
     item: T,
+    preferredVariant?: ImageVariantName,
   ): T & { imageVariants: ImageVariantUrls | null } {
+    const imageVariants = this.r2.resolveVariants(item.imageUrl);
+
     return {
       ...item,
-      imageVariants: this.r2.resolveVariants(item.imageUrl),
+      imageUrl:
+        preferredVariant && imageVariants
+          ? imageVariants[preferredVariant]
+          : item.imageUrl,
+      imageVariants,
     };
   }
 
@@ -91,10 +101,18 @@ export class AdminService {
     return items.map(item => this.attachImageVariants(item));
   }
 
+  private attachOptimizedThemeImage<T extends ImageRecord>(item: T) {
+    return this.attachImageVariants(item, 'medium');
+  }
+
+  private attachOptimizedThemeImages<T extends ImageRecord>(items: T[]) {
+    return items.map(item => this.attachOptimizedThemeImage(item));
+  }
+
   private attachThemeImageVariants<T extends ThemeWithImageRecords>(theme: T) {
     return {
       ...theme,
-      themeImages: this.attachImageVariantsToCollection(theme.themeImages),
+      themeImages: this.attachOptimizedThemeImages(theme.themeImages),
     };
   }
 
@@ -462,7 +480,7 @@ export class AdminService {
   // ==================== THEME IMAGES ====================
   async createThemeImage(data: { themeId: string; type: string; imageUrl: string }) {
     const createdThemeImage = await this.prisma.themeImage.create({ data });
-    return this.attachImageVariants(createdThemeImage);
+    return this.attachOptimizedThemeImage(createdThemeImage);
   }
 
   async deleteThemeImage(id: string) {
@@ -470,7 +488,7 @@ export class AdminService {
     if (!existing) throw new NotFoundException('ThemeImage not found');
     const deletedThemeImage = await this.prisma.themeImage.delete({ where: { id } });
     await this.deleteImageIfPresent(existing.imageUrl);
-    return this.attachImageVariants(deletedThemeImage);
+    return this.attachOptimizedThemeImage(deletedThemeImage);
   }
 
   // ==================== DASHBOARD ====================
