@@ -333,17 +333,30 @@ Response:
 
 `GET /admin/events`
 
+Contract thay doi:
+
+- Tu ban cap nhat ngay 22/06/2026, `Event` co them `nameEn` va `nameVi`
+- Field `name` cu van duoc giu lai de tuong thich nguoc
+- Frontend moi nen uu tien doc va ghi `nameEn` / `nameVi`
+
 Response item:
 
 ```json
 {
   "id": "uuid",
   "name": "New Year",
+  "nameEn": "New Year",
+  "nameVi": "Nam Moi",
   "imageUrl": "https://cdn.example.com/events/new-year.png",
   "color": "#FF5252",
   "backgroundColor": "#FFF0F0",
   "descriptionEn": "New year event",
   "descriptionVi": "Su kien nam moi",
+  "imageVariants": {
+    "original": "https://cdn.example.com/events/new-year.png",
+    "medium": "https://cdn.example.com/events/new-year-medium.webp",
+    "thumb": "https://cdn.example.com/events/new-year-thumb.webp"
+  },
   "createdAt": "2026-06-10T15:00:00.000Z"
 }
 ```
@@ -648,11 +661,18 @@ Body:
 
 `POST /admin/events`
 
+Khuyen nghi contract moi:
+
+- Gui day du `nameEn` va `nameVi`
+- Co the tiep tuc gui `name` trong giai doan chuyen doi, backend se dung lam fallback
+
 Body:
 
 ```json
 {
   "name": "New Year",
+  "nameEn": "New Year",
+  "nameVi": "Nam Moi",
   "imageUrl": "https://cdn.example.com/events/new-year.png",
   "color": "#FF5252",
   "backgroundColor": "#FFF0F0",
@@ -661,11 +681,38 @@ Body:
 }
 ```
 
+Fallback compatibility:
+
+- Neu chi gui `name`, backend se tu dien `nameEn` va `nameVi` bang gia tri do
+- Neu gui `nameEn` hoac `nameVi` ma khong gui `name`, backend van tao duoc du lieu va tu suy ra `name`
+
 ### 30. Update Event
 
 `PATCH /admin/events/:id`
 
 Body: gui cac field can sua
+
+Field co the cap nhat:
+
+- `name`
+- `nameEn`
+- `nameVi`
+- `imageUrl`
+- `color`
+- `backgroundColor`
+- `descriptionEn`
+- `descriptionVi`
+
+Vi du:
+
+```json
+{
+  "nameEn": "Christmas",
+  "nameVi": "Giang Sinh",
+  "descriptionEn": "Christmas event",
+  "descriptionVi": "Su kien Giang Sinh"
+}
+```
 
 ### 31. Delete Event
 

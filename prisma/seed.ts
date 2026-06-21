@@ -13,6 +13,22 @@ function readJson<T>(filename: string): T {
   return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as T;
 }
 
+function readLocalizedValue(
+  value: unknown,
+  locale: 'en' | 'vi',
+): string | null {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value && typeof value === 'object') {
+    const localizedValue = (value as Record<string, unknown>)[locale];
+    return typeof localizedValue === 'string' ? localizedValue : null;
+  }
+
+  return null;
+}
+
 async function seedEmojiTypes() {
   const data = readJson<any[]>('data_typeEmoji.json');
   for (const item of data) {
@@ -143,11 +159,29 @@ async function seedThemeImages() {
 async function seedEvents() {
   const data = readJson<any[]>('data_events.json');
   for (const item of data) {
+    const legacyName =
+      typeof item.name === 'string' ? item.name : null;
+    const nameEn =
+      item.nameEn ??
+      readLocalizedValue(item.name, 'en') ??
+      legacyName;
+    const nameVi =
+      item.nameVi ??
+      readLocalizedValue(item.name, 'vi') ??
+      legacyName;
+    const name = legacyName ?? nameEn ?? nameVi;
+
+    if (!name || !nameEn || !nameVi) {
+      throw new Error(`Event ${item.id} is missing localized names`);
+    }
+
     await prisma.event.upsert({
       where: { id: item.id },
       create: {
         id: item.id,
-        name: item.name,
+        name,
+        nameEn,
+        nameVi,
         imageUrl: item.image ?? null,
         color: item.color ?? null,
         backgroundColor: item.backgroundColor ?? null,
@@ -155,7 +189,9 @@ async function seedEvents() {
         descriptionVi: item.descriptionVi ?? null,
       },
       update: {
-        name: item.name,
+        name,
+        nameEn,
+        nameVi,
         imageUrl: item.image ?? null,
         color: item.color ?? null,
         backgroundColor: item.backgroundColor ?? null,

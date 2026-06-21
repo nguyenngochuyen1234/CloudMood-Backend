@@ -34,6 +34,12 @@ type AppVersionRecord = {
   isActive: boolean;
 };
 
+type EventNameInput = {
+  name?: string;
+  nameEn?: string;
+  nameVi?: string;
+};
+
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
@@ -184,6 +190,50 @@ export class AdminService {
       store_url: item.storeUrl,
       is_active: item.isActive,
     };
+  }
+
+  private normalizeOptionalString(value: string | null | undefined) {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
+  }
+
+  private resolveEventNames(
+    input: EventNameInput,
+    existing?: { name: string; nameEn: string; nameVi: string },
+  ) {
+    const inputName = this.normalizeOptionalString(input.name);
+    const inputNameEn = this.normalizeOptionalString(input.nameEn);
+    const inputNameVi = this.normalizeOptionalString(input.nameVi);
+
+    const name =
+      inputName ??
+      existing?.name ??
+      inputNameEn ??
+      inputNameVi;
+    const nameEn =
+      inputNameEn ??
+      existing?.nameEn ??
+      inputName ??
+      inputNameVi ??
+      existing?.name;
+    const nameVi =
+      inputNameVi ??
+      existing?.nameVi ??
+      inputName ??
+      inputNameEn ??
+      existing?.name;
+
+    if (!name || !nameEn || !nameVi) {
+      throw new BadRequestException(
+        'Event name requires name, nameEn, or nameVi',
+      );
+    }
+
+    return { name, nameEn, nameVi };
   }
 
   // ==================== USERS ====================
@@ -503,21 +553,38 @@ export class AdminService {
   }
 
   async createEvent(data: {
-    name: string;
+    name?: string;
+    nameEn?: string;
+    nameVi?: string;
     imageUrl?: string;
     color?: string;
     backgroundColor?: string;
     descriptionEn?: string;
     descriptionVi?: string;
   }) {
-    const createdEvent = await this.prisma.event.create({ data });
+    const createdEvent = await this.prisma.event.create({
+      data: {
+        ...data,
+        ...this.resolveEventNames(data),
+      },
+    });
     return this.attachImageVariants(createdEvent);
   }
 
-  async updateEvent(id: string, data: Partial<{ name: string; imageUrl: string; color: string; backgroundColor: string; descriptionEn: string; descriptionVi: string }>) {
+  async updateEvent(id: string, data: Partial<{ name: string; nameEn: string; nameVi: string; imageUrl: string; color: string; backgroundColor: string; descriptionEn: string; descriptionVi: string }>) {
     const existing = await this.prisma.event.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Event not found');
-    const updatedEvent = await this.prisma.event.update({ where: { id }, data });
+    const updatedEvent = await this.prisma.event.update({
+      where: { id },
+      data: {
+        ...data,
+        ...this.resolveEventNames(data, {
+          name: existing.name,
+          nameEn: existing.nameEn,
+          nameVi: existing.nameVi,
+        }),
+      },
+    });
     if (data.imageUrl && data.imageUrl !== existing.imageUrl) {
       await this.deleteImageIfPresent(existing.imageUrl);
     }
