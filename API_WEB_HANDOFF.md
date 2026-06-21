@@ -298,7 +298,38 @@ Response item:
 
 Response: giong item cua `GET /admin/themes`, nhung chi tra ve 1 theme theo `id`. Neu khong tim thay se tra `404 Theme not found`.
 
-### 10. Events
+### 10. App Versions
+
+`GET /app-versions`
+
+Public API de app mobile lay cau hinh version update hien tai.
+
+Query params:
+
+- `platform` (optional): `ios` hoac `android`. Neu co, API chi tra ve platform do.
+
+Response:
+
+```json
+[
+  {
+    "platform": "ios",
+    "latest_version": "1.0.0",
+    "min_supported_version": "1.0.0",
+    "store_url": "",
+    "is_active": true
+  },
+  {
+    "platform": "android",
+    "latest_version": "2.1.0",
+    "min_supported_version": "2.1.0",
+    "store_url": "https://play.google.com/store/apps/details?id=com.huyen.cloudmood",
+    "is_active": true
+  }
+]
+```
+
+### 11. Events
 
 `GET /admin/events`
 
@@ -533,7 +564,69 @@ Body: gui cac field can sua
 
 `DELETE /admin/themes/:id`
 
-### 27. Create Theme Image
+### 27. Create App Version
+
+`POST /admin/app-versions`
+
+Tao moi cau hinh version cho 1 platform. `platform` chi nhan `ios` hoac `android`. Neu platform da ton tai se tra `409 App version for this platform already exists`.
+
+Body:
+
+```json
+{
+  "platform": "android",
+  "latest_version": "2.1.0",
+  "min_supported_version": "2.1.0",
+  "store_url": "https://play.google.com/store/apps/details?id=com.huyen.cloudmood",
+  "is_active": true
+}
+```
+
+### 28. Bulk Upsert App Versions
+
+`PUT /admin/app-versions`
+
+Bulk upsert de luu/chinh sua ca danh sach version config cung luc. Body la mang object, phu hop truc tiep voi payload admin dang quan ly.
+
+Body:
+
+```json
+[
+  {
+    "platform": "ios",
+    "latest_version": "1.0.0",
+    "min_supported_version": "1.0.0",
+    "store_url": "",
+    "is_active": true
+  },
+  {
+    "platform": "android",
+    "latest_version": "2.1.0",
+    "min_supported_version": "2.1.0",
+    "store_url": "https://play.google.com/store/apps/details?id=com.huyen.cloudmood",
+    "is_active": true
+  }
+]
+```
+
+### 29. Update App Version
+
+`PATCH /admin/app-versions/:platform`
+
+Chinh sua 1 platform theo `platform = ios|android`.
+
+Body: gui cac field can sua
+
+```json
+{
+  "latest_version": "2.1.1",
+  "min_supported_version": "2.1.0",
+  "store_url": "https://play.google.com/store/apps/details?id=com.huyen.cloudmood",
+  "is_active": true
+}
+```
+
+### 30. Create Theme Image
 
 `POST /admin/theme-images`
 

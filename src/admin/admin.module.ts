@@ -8,5 +8,6 @@ import { UploadModule } from '../upload/upload.module';
   imports: [PrismaModule, UploadModule],
   controllers: [AdminController],
   providers: [AdminService],
+  exports: [AdminService],
 })
 export class AdminModule {}

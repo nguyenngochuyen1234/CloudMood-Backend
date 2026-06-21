@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
   Delete,
   Body,
@@ -12,6 +13,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ParseIntPipe,
+  ParseArrayPipe,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -20,6 +22,10 @@ import { AdminService } from './admin.service';
 import { R2Service } from '../upload/r2.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminRoleGuard } from './admin-role.guard';
+import {
+  CreateAppVersionDto,
+  UpdateAppVersionDto,
+} from './dto/app-version.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -218,6 +224,36 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, AdminRoleGuard)
   deleteThemeImage(@Param('id') id: string) {
     return this.adminService.deleteThemeImage(id);
+  }
+
+  // ==================== APP VERSIONS ====================
+  @Get('app-versions')
+  getAppVersions() {
+    return this.adminService.getAppVersions();
+  }
+
+  @Post('app-versions')
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
+  createAppVersion(@Body() body: CreateAppVersionDto) {
+    return this.adminService.createAppVersion(body);
+  }
+
+  @Put('app-versions')
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
+  upsertAppVersions(
+    @Body(new ParseArrayPipe({ items: CreateAppVersionDto }))
+    body: CreateAppVersionDto[],
+  ) {
+    return this.adminService.upsertAppVersions(body);
+  }
+
+  @Patch('app-versions/:platform')
+  @UseGuards(JwtAuthGuard, AdminRoleGuard)
+  updateAppVersion(
+    @Param('platform') platform: string,
+    @Body() body: UpdateAppVersionDto,
+  ) {
+    return this.adminService.updateAppVersion(platform, body);
   }
 
   // ==================== EVENTS ====================

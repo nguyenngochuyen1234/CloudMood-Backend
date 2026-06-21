@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "prisma generate && nest build",
+    "migrate:deploy": "prisma migrate deploy",
     "migrate:images": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/migrate-image-assets.ts",
     "postinstall": "prisma generate",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

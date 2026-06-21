@@ -103,3 +103,16 @@ model Event {
 
   @@map("events")
 }
+
+model AppVersion {
+  id                  String   @id @default(uuid()) @db.Uuid
+  platform            String   @unique @db.VarChar(20)
+  latestVersion       String   @map("latest_version") @db.VarChar(50)
+  minSupportedVersion String   @map("min_supported_version") @db.VarChar(50)
+  storeUrl            String   @default("") @map("store_url") @db.Text
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamp
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamp
+
+  @@map("app_versions")
+}

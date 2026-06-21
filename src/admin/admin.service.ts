@@ -1,4 +1,10 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { R2Service } from '../upload/r2.service';
@@ -6,6 +12,11 @@ import {
   ImageVariantName,
   ImageVariantUrls,
 } from '../upload/image-asset.types';
+import {
+  APP_PLATFORMS,
+  CreateAppVersionDto,
+  UpdateAppVersionDto,
+} from './dto/app-version.dto';
 
 type ImageRecord = {
   imageUrl: string | null;
@@ -15,9 +26,18 @@ type ThemeWithImageRecords = {
   themeImages: ImageRecord[];
 };
 
+type AppVersionRecord = {
+  platform: string;
+  latestVersion: string;
+  minSupportedVersion: string;
+  storeUrl: string;
+  isActive: boolean;
+};
+
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
+  private readonly appVersionPlatformOrder = [...APP_PLATFORMS];
 
   constructor(
     private prisma: PrismaService,
@@ -129,6 +149,41 @@ export class AdminService {
         error instanceof Error ? error.stack : undefined,
       );
     }
+  }
+
+  private normalizeAppVersionPlatform(platform: string) {
+    const normalizedPlatform = platform.trim().toLowerCase();
+
+    if (!this.appVersionPlatformOrder.includes(normalizedPlatform as any)) {
+      throw new BadRequestException(
+        `platform must be one of: ${this.appVersionPlatformOrder.join(', ')}`,
+      );
+    }
+
+    return normalizedPlatform;
+  }
+
+  private sortAppVersions<T extends { platform: string }>(items: T[]) {
+    return [...items].sort((left, right) => {
+      const leftIndex = this.appVersionPlatformOrder.indexOf(
+        left.platform as (typeof APP_PLATFORMS)[number],
+      );
+      const rightIndex = this.appVersionPlatformOrder.indexOf(
+        right.platform as (typeof APP_PLATFORMS)[number],
+      );
+
+      return leftIndex - rightIndex;
+    });
+  }
+
+  private serializeAppVersion(item: AppVersionRecord) {
+    return {
+      platform: item.platform,
+      latest_version: item.latestVersion,
+      min_supported_version: item.minSupportedVersion,
+      store_url: item.storeUrl,
+      is_active: item.isActive,
+    };
   }
 
   // ==================== USERS ====================
@@ -489,6 +544,146 @@ export class AdminService {
     const deletedThemeImage = await this.prisma.themeImage.delete({ where: { id } });
     await this.deleteImageIfPresent(existing.imageUrl);
     return this.attachOptimizedThemeImage(deletedThemeImage);
+  }
+
+  // ==================== APP VERSIONS ====================
+  async getAppVersions(options?: { activeOnly?: boolean; platform?: string }) {
+    const normalizedPlatform = options?.platform
+      ? this.normalizeAppVersionPlatform(options.platform)
+      : undefined;
+
+    const appVersions = await this.prisma.appVersion.findMany({
+      where: {
+        ...(options?.activeOnly ? { isActive: true } : {}),
+        ...(normalizedPlatform ? { platform: normalizedPlatform } : {}),
+      },
+      select: {
+        platform: true,
+        latestVersion: true,
+        minSupportedVersion: true,
+        storeUrl: true,
+        isActive: true,
+      },
+    });
+
+    return this.sortAppVersions(appVersions).map(item =>
+      this.serializeAppVersion(item),
+    );
+  }
+
+  async createAppVersion(data: CreateAppVersionDto) {
+    try {
+      const createdAppVersion = await this.prisma.appVersion.create({
+        data: {
+          platform: data.platform,
+          latestVersion: data.latest_version,
+          minSupportedVersion: data.min_supported_version,
+          storeUrl: data.store_url ?? '',
+          isActive: data.is_active ?? true,
+        },
+        select: {
+          platform: true,
+          latestVersion: true,
+          minSupportedVersion: true,
+          storeUrl: true,
+          isActive: true,
+        },
+      });
+
+      return this.serializeAppVersion(createdAppVersion);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('App version for this platform already exists');
+      }
+
+      throw error;
+    }
+  }
+
+  async upsertAppVersions(items: CreateAppVersionDto[]) {
+    const duplicatePlatforms = items.reduce<string[]>(
+      (duplicates, item, index) => {
+        const firstIndex = items.findIndex(
+          candidate => candidate.platform === item.platform,
+        );
+
+        if (firstIndex !== index && !duplicates.includes(item.platform)) {
+          duplicates.push(item.platform);
+        }
+
+        return duplicates;
+      },
+      [],
+    );
+
+    if (duplicatePlatforms.length > 0) {
+      throw new BadRequestException(
+        `Duplicate platform values are not allowed: ${duplicatePlatforms.join(', ')}`,
+      );
+    }
+
+    const appVersions = await this.prisma.$transaction(
+      items.map(item =>
+        this.prisma.appVersion.upsert({
+          where: { platform: item.platform },
+          update: {
+            latestVersion: item.latest_version,
+            minSupportedVersion: item.min_supported_version,
+            storeUrl: item.store_url ?? '',
+            isActive: item.is_active ?? true,
+          },
+          create: {
+            platform: item.platform,
+            latestVersion: item.latest_version,
+            minSupportedVersion: item.min_supported_version,
+            storeUrl: item.store_url ?? '',
+            isActive: item.is_active ?? true,
+          },
+          select: {
+            platform: true,
+            latestVersion: true,
+            minSupportedVersion: true,
+            storeUrl: true,
+            isActive: true,
+          },
+        }),
+      ),
+    );
+
+    return this.sortAppVersions(appVersions).map(item =>
+      this.serializeAppVersion(item),
+    );
+  }
+
+  async updateAppVersion(platform: string, data: UpdateAppVersionDto) {
+    const normalizedPlatform = this.normalizeAppVersionPlatform(platform);
+    const existing = await this.prisma.appVersion.findUnique({
+      where: { platform: normalizedPlatform },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('App version not found');
+    }
+
+    return this.prisma.appVersion.update({
+      select: {
+        platform: true,
+        latestVersion: true,
+        minSupportedVersion: true,
+        storeUrl: true,
+        isActive: true,
+      },
+      where: { platform: normalizedPlatform },
+      data: {
+        latestVersion: data.latest_version,
+        minSupportedVersion: data.min_supported_version,
+        storeUrl: data.store_url,
+        isActive: data.is_active,
+      },
+    }).then(item => this.serializeAppVersion(item));
   }
 
   // ==================== DASHBOARD ====================
