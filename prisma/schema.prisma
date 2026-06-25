@@ -102,6 +102,7 @@ model Event {
   descriptionEn   String?  @map("description_en") @db.Text
   descriptionVi   String?  @map("description_vi") @db.Text
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp
+
   @@map("events")
 
 }
