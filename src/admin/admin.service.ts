@@ -260,7 +260,13 @@ export class AdminService {
 
   // ==================== EMOTIONS ====================
   async getEmotions() {
-    return this.prisma.emotion.findMany({ orderBy: { id: 'asc' } });
+    return this.prisma.emotion.findMany({
+      orderBy: [
+        { isPro: 'asc' },
+        { isProVN: 'asc' },
+        { id: 'asc' },
+      ],
+    });
   }
 
   async createEmotion(data: {
@@ -301,7 +307,13 @@ export class AdminService {
 
   // ==================== EMOJI TYPES ====================
   async getEmojiTypes() {
-    return this.prisma.emojiType.findMany({ orderBy: { id: 'asc' } });
+    return this.prisma.emojiType.findMany({
+      orderBy: [
+        { isPro: 'asc' },
+        { isProVN: 'asc' },
+        { id: 'asc' },
+      ],
+    });
   }
 
   async createEmojiType(data: {
@@ -333,7 +345,13 @@ export class AdminService {
     const emojis = await this.prisma.emoji.findMany({
       where: typeId ? { typeId } : undefined,
       include: { type: true, emotion: true },
-      orderBy: { id: 'asc' },
+      orderBy: [
+        { type: { isPro: 'asc' } },
+        { type: { isProVN: 'asc' } },
+        { emotion: { isPro: 'asc' } },
+        { emotion: { isProVN: 'asc' } },
+        { id: 'asc' },
+      ],
     });
     return this.attachImageVariantsToCollection(emojis);
   }
@@ -447,7 +465,11 @@ export class AdminService {
       const themes = await this.prisma.theme.findMany({
         where,
         include: { themeImages: true },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [
+          { isPro: 'asc' },
+          { isProVN: 'asc' },
+          { createdAt: 'desc' },
+        ],
       });
       return themes.map(theme => this.attachThemeImageVariants(theme));
     }
@@ -460,7 +482,11 @@ export class AdminService {
       this.prisma.theme.findMany({
         where,
         include: { themeImages: true },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [
+          { isPro: 'asc' },
+          { isProVN: 'asc' },
+          { createdAt: 'desc' },
+        ],
         skip,
         take: limit,
       }),
@@ -488,6 +514,7 @@ export class AdminService {
         mode: true,
         isActive: true,
         isPro: true,
+        isProVN: true,
         colorsJson: true,
         createdAt: true,
         themeImages: {
@@ -496,7 +523,11 @@ export class AdminService {
           take: 1,
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { isPro: 'asc' },
+        { isProVN: 'asc' },
+        { createdAt: 'desc' },
+      ],
     });
     return themes.map(theme => this.attachThemeImageVariants(theme));
   }
