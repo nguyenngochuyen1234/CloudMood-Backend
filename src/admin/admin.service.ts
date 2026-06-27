@@ -26,6 +26,10 @@ type ThemeWithImageRecords = {
   themeImages: ImageRecord[];
 };
 
+type ThemeIdRow = {
+  id: string;
+};
+
 type AppVersionRecord = {
   platform: string;
   latestVersion: string;
@@ -49,6 +53,35 @@ export class AdminService {
     private prisma: PrismaService,
     private readonly r2: R2Service,
   ) {}
+
+  private async getOrderedThemeIds(params?: {
+    mode?: string;
+    skip?: number;
+    take?: number;
+  }) {
+    const trimmedMode = params?.mode?.trim();
+    const modeWhere = trimmedMode
+      ? Prisma.sql`WHERE LOWER(mode) = LOWER(${trimmedMode})`
+      : Prisma.empty;
+    const pagination =
+      params?.take !== undefined
+        ? Prisma.sql`LIMIT ${params.take} OFFSET ${params.skip ?? 0}`
+        : Prisma.empty;
+
+    const rows = await this.prisma.$queryRaw<ThemeIdRow[]>`
+      SELECT id::text AS id
+      FROM themes
+      ${modeWhere}
+      ORDER BY
+        CASE WHEN LOWER(TRIM(COALESCE(mode, ''))) = 'lightmode' THEN 0 ELSE 1 END ASC,
+        is_pro ASC,
+        is_pro_vn ASC,
+        created_at DESC
+      ${pagination}
+    `;
+
+    return rows.map(row => row.id);
+  }
 
   private mapEmojiPairConflict(error: unknown): never {
     if (
@@ -462,36 +495,35 @@ export class AdminService {
       params?.page !== undefined || params?.limit !== undefined;
 
     if (!shouldPaginate) {
+      const themeIds = await this.getOrderedThemeIds({ mode: trimmedMode });
       const themes = await this.prisma.theme.findMany({
-        where,
+        where: { id: { in: themeIds } },
         include: { themeImages: true },
-        orderBy: [
-          { isPro: 'asc' },
-          { isProVN: 'asc' },
-          { createdAt: 'desc' },
-        ],
       });
-      return themes.map(theme => this.attachThemeImageVariants(theme));
+
+      const themeById = new Map(themes.map(theme => [theme.id, theme]));
+      return themeIds
+        .map(id => themeById.get(id))
+        .filter(theme => theme !== undefined)
+        .map(theme => this.attachThemeImageVariants(theme));
     }
 
     const page = params?.page ?? 1;
     const limit = params?.limit ?? 10;
     const skip = (page - 1) * limit;
 
-    const [items, totalItems] = await this.prisma.$transaction([
-      this.prisma.theme.findMany({
-        where,
-        include: { themeImages: true },
-        orderBy: [
-          { isPro: 'asc' },
-          { isProVN: 'asc' },
-          { createdAt: 'desc' },
-        ],
-        skip,
-        take: limit,
-      }),
+    const [themeIds, totalItems] = await Promise.all([
+      this.getOrderedThemeIds({ mode: trimmedMode, skip, take: limit }),
       this.prisma.theme.count({ where }),
     ]);
+    const themes = await this.prisma.theme.findMany({
+      where: { id: { in: themeIds } },
+      include: { themeImages: true },
+    });
+    const themeById = new Map(themes.map(theme => [theme.id, theme]));
+    const items = themeIds
+      .map(id => themeById.get(id))
+      .filter(theme => theme !== undefined);
 
     return {
       items: items.map(item => this.attachThemeImageVariants(item)),
@@ -507,7 +539,9 @@ export class AdminService {
   }
 
   async getThemesForHome() {
+    const themeIds = await this.getOrderedThemeIds();
     const themes = await this.prisma.theme.findMany({
+      where: { id: { in: themeIds } },
       select: {
         id: true,
         name: true,
@@ -523,13 +557,13 @@ export class AdminService {
           take: 1,
         },
       },
-      orderBy: [
-        { isPro: 'asc' },
-        { isProVN: 'asc' },
-        { createdAt: 'desc' },
-      ],
     });
-    return themes.map(theme => this.attachThemeImageVariants(theme));
+
+    const themeById = new Map(themes.map(theme => [theme.id, theme]));
+    return themeIds
+      .map(id => themeById.get(id))
+      .filter(theme => theme !== undefined)
+      .map(theme => this.attachThemeImageVariants(theme));
   }
 
   async getThemeById(id: string) {
